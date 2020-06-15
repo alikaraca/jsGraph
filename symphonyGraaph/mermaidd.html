@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>jQuery.getJSON demo</title>
+  <style>
+  img {
+    height: 100px;
+    float: left;
+  }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+  <script src="lib/parser.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@8.4.0/dist/mermaid.min.js"></script>
+  
+</head>
+<body>
+    <div id="operation"></div>
+    <div class="mermaid" id="graph"></div>
+    <span class="float-right" style="color: rgb(231, 0, 0)"><span id="lengthoutput" style="margin:5px">0</span> bytes</span>
+    <textarea id="result" style="width: 100%; height: 500px;" class="form-control" placeholder="Output"></textarea>
+    <textarea id="nam" style="width: 100%; height: 500px;" class="form-control" placeholder="Name"></textarea>
+    <script>
+        var config1 = {
+            theme:'forest',
+            logLevel:'fatal',
+            securityLevel:'strict',
+            startOnLoad:true,
+            arrowMarkerAbsolute:false,
+        };
+        var ayrac;
+        var graphId=0;
+        var receiveAd,assignAd;
+        var graphText="graph TD\n";
+        var txt;
+        var editor;
+        var jqxhr = $.get("QueryXDSLResponseDB.bpel", function() {
+            console.log( "success" );
+        });
+        jqxhr.always(function() {
+            txt=jqxhr.responseText;
+            readTxt();
+            
+        });
+
+        function readTxt(){
+            editor=txt;
+            takeText();
+        }
+        function buildParsingConfig(){
+            var config = {
+                attributeNamePrefix : "",
+                ignoreAttributes : false,
+                
+            };
+            return config;
+        }
+        function updateOutputLength(data){
+            $("#lengthoutput")[0].innerText = data.length;
+        }
+        //takeText();
+        function takeText(){
+            $('#result').val('');
+            var sonuc = parser.parse(editor,buildParsingConfig());
+            updateOutputLength(JSON.stringify(sonuc));
+            console.log(sonuc);
+            $('#result').val(JSON.stringify(sonuc,null,4));
+
+            var seqJson=getSeq(sonuc);
+            createGraph(seqJson);
+            Graph();
+        }
+        function toArray(obj) {
+            const result = [];
+            for (const prop in obj) {
+                const value = obj[prop];
+                if (typeof value === 'object') {
+                    result.push(toArray(value)); // <- recursive call
+                }
+                else {
+                    result.push(value);
+                }
+            }
+            return result;
+        }
+        function getSeq(obj){
+            var result=[];
+            for(const value in obj){
+                name=Object.getOwnPropertyNames(obj).toString();
+                var val=obj[value];
+                for(const seqAra in val){
+                    /*var seqDeger=Object.getOwnPropertyNames(val);
+                    console.log(seqDeger);*/
+                    if(seqAra==="sequence"){
+                        var val1=val[seqAra];
+                        result.push(val1);
+                        //graphText+="\nsubgraph \n"
+                    }
+                    
+                }
+                $('#nam').val(JSON.stringify(result,null,4));
+                $('#operation').text(name);
+            }
+            return result;
+        }
+        function createGraph(obj){
+            for(const value in obj){
+                var val=obj[value];
+                console.log(obj);
+                for(const degerAra in val){
+                    if(degerAra==="assign"){
+                        if(isObject(val[degerAra])){
+                            ayrac="-->";
+                            createAssign(val[degerAra]);
+                        }else if(isArray(val[degerAra])){
+                            for(var i=0;i<val[degerAra].length;i++){
+                                ayrac="-->"
+                                graphId+=1;
+                                createAssign(val[degerAra][i]);
+                            }
+                        }else{
+                            console.log("Assign Array ve Object değildir.");
+                        }
+                    }else if(degerAra==="sequence"){
+                        createSequence(val[degerAra]);
+                    }else if(degerAra==="invoke"){
+                        if(isObject(val[degerAra])){
+                            ayrac="-->"
+                            createInvoke(val[degerAra]);
+                        }else if(isArray(val[degerAra])){
+                            for(var i=0;i<val[degerAra].length;i++){
+                                ayrac="-->"
+                                graphId+=1;
+                                createInvoke(val[degerAra][i]);
+                            }
+                            
+                        }else{
+                            console.log("Invoke Array ve Object değildir.");
+                        }
+                        
+                    }else if(degerAra==="empty"){
+                        //createEmpty(obj[degerAra]);
+                    }
+                    else if(degerAra==="reply"){
+
+                    }
+                    else if(degerAra==="while"){
+
+                    }
+                    else if(degerAra==="forEach"){
+
+                    }
+                    else if(degerAra==="scope"){
+                        if(isObject(val[degerAra])){
+                            //ayrac="-->"
+                            createScope(val[degerAra]);
+                            console.log("Scope isObject");
+                        }else if(isArray(val[degerAra])){
+                            for(var i=0;i<val[degerAra].length;i++){
+                                //ayrac="-->"
+                                //graphId+=1;
+                                console.log(i);
+                                console.log(val[degerAra][i]);
+                                createScope(val[degerAra][i]);
+                                
+                                console.log("Scope isArray");
+                            }
+                        }else{
+                            console.log("Scope Array ve Object değildir.");
+                        }
+                        console.log("scope girdi");
+                    }else if(degerAra==="receive"){
+                        graphId+=1;
+                        createReceive(val[degerAra],graphId);
+                    }
+                    else if(degerAra==="if"){
+                        if(isObject(val[degerAra])){
+                            createIf(val[degerAra]);
+                        }else if(isArray(val[degerAra])){
+                            for(var i=0;i<val[degerAra].length;i++){
+                                ayrac="-->";
+                                graphId+=1;
+                                createIf(val[degerAra][i]);
+                            }
+                        }else{
+                            console.log("If Array ve Object değildir.");
+                        }
+                        graphId+=1;
+                    }
+                }
+            }
+        }
+        function createSequence(obj){
+            for(const seqValue in obj){
+                var deg=obj[seqValue];
+                console.log("seq girdi");
+                createGraph(deg);
+                /*for(const degerAra1 in deg){
+                    //console.log(deg[degerAra1]);
+                    if(degerAra1==="assign"){
+                        graphId+=1;
+                        createAssign(deg[degerAra1]);
+                    }else if(degerAra1==="if"){
+                        graphId+=1;
+                        createIf(deg[degerAra1]);
+                    }else if(degerAra1==="receive"){
+                        graphId+=1;
+                    }
+                }*/
+            }
+        }
+        
+        function createIf(obj){
+            console.log("if girdi");
+            graphText+=ayrac+graphId+"{"+obj.name+"}";
+            for(const degerAraIf in obj){
+                if(degerAraIf==="assign"){
+                    if(isObject(obj[degerAraIf])){
+                        createAssign(obj[degerAraIf]);
+                    }else if(isArray(obj[degerAraIf])){
+                        for(var i=0;i<val[degerAra].length;i++){
+                            ayrac="-->";
+                            graphId+=1;
+                            createAssign(obj[degerAraIf][i]);
+                        }
+                    }
+                    
+                }else if(degerAraIf==="empty"){
+                    if(isObject(obj[degerAraIf])){
+                        createEmpty(obj[degerAraIf]);
+                    }else if(isArray(obj[degerAraIf])){
+                        for(var i=0;i<val[degerAra].length;i++){
+                            ayrac="-->";
+                            graphId+=1;
+                            createEmpty(obj[degerAraIf][i]);
+                        }
+                    }
+                    
+                }else if(degerAraIf==="else"){
+                    console.log("else girdi");
+                    if(isObject(obj[degerAraIf])){
+                        createElse(obj[degerAraIf]);
+                    }else if(isArray(obj[degerAraIf])){
+                        for(var i=0;i<val[degerAra].length;i++){
+                            ayrac="-->";
+                            graphId+=1;
+                            createElse(obj[degerAraIf][i]);
+                        }
+                    }
+                    
+                }else if(degerAraIf==="elseif"){
+                    console.log("elseif girdi");
+                    createElseIf(obj[degerAraIf]);
+                }
+                console.log(obj[degerAraIf]);
+                console.log("1");
+            }
+            
+        }
+        function createElseIf(obj){
+
+            if(isObject(val[degerAra])){
+                createIf(val[degerAra]);
+            }else if(isArray(val[degerAra])){
+                for(var i=0;i<val[degerAra].length;i++){
+                        ayrac="-->";
+                        graphId+=1;
+                        createIf(val[degerAra][i]);
+                    }
+            }else{
+                console.log("If Array ve Object değildir.");
+            }
+            createGraph(obj);
+        }
+        function createElse(obj){
+            createGraph(obj);
+        }
+        
+        function createScope(obj){
+            //graphText+="\nsubgraph"+obj.name+"\n";
+            for(const scopeValue in obj){
+                var deg=obj[scopeValue];
+                console.log(deg);
+                console.log(999);
+                createGraph(deg);
+                /*for(const degerAra1 in deg){
+                    //console.log(deg[degerAra1]);
+                    if(degerAra1==="assign"){
+                        graphId+=1;
+                        createAssign(deg[degerAra1]);
+                    }else if(degerAra1==="if"){
+                        graphId+=1;
+                        createIf(deg[degerAra1]);
+                    }else if(degerAra1==="receive"){
+                        graphId+=1;
+                    }
+                }*/
+            }
+            //graphText+="\n end \n";
+        }
+        function createInvoke(obj){
+            graphId+=1;
+            graphText+=ayrac+graphId+"["+obj.name+"]";
+        }
+        function createEmpty(obj){
+            graphId+=1;
+            graphText+=ayrac+graphId+"["+obj.name+"]";
+        }
+        function createAssign(obj){
+            graphId+=1;
+            graphText+=ayrac+graphId+"("+obj.name+")";
+            console.log(graphId);
+        }
+        function createReceive(obj,id){
+            if(id>1){
+                graphText+=ayrac+graphId+"(("+obj.name+"))";
+            }else{
+                graphText+=graphId+"(("+obj.name+"))";
+            }
+        }
+        function Graph(){
+            //var graph=graphText+"subgraph "+seqAd+"\n A(("+receiveAd+")) --> B("+assignAd+")\n end";
+            var graph=graphText;
+            var mermaidNode = document.getElementById('graph');
+            // prevent mermaid skip rendering
+            mermaidNode.removeAttribute("data-processed");
+            mermaidNode.replaceChild(document.createTextNode(graph), mermaidNode.firstChild);
+            mermaid.init(undefined, mermaidNode);
+            mermaid.initialize(config1);
+        }
+
+        isObject = function(a) {
+            return (!!a) && (a.constructor === Object);
+        };
+
+        isArray = function(a) {
+            return (!!a) && (a.constructor === Array);
+        };
+    </script>
+</body>
+</html>

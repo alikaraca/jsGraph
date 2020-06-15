@@ -1,0 +1,329 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  Oracle JDeveloper BPEL Designer 
+  
+  Created: Wed May 02 14:23:41 EET 2018
+  Author:  serdar.yildirim
+  Purpose: Synchronous BPEL Process
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-->
+<process name="QueryXDSLResponseDB"
+               targetNamespace="http://xmlns.ttnet.com.tr/Services/QueryXDSLResponseDB/QueryXDSLResponseDB"
+               xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+               xmlns:client="http://xmlns.ttnet.com.tr/Services/QueryXDSLResponseDB/QueryXDSLResponseDB"
+               xmlns:ora="http://schemas.oracle.com/xpath/extension"
+               xmlns:bpelx="http://schemas.oracle.com/bpel/extension"
+               xmlns:ns1="http://xmlns.oracle.com/pcbpel/adapter/db/TTNET_SOA_12c/QueryXDSLResponseDB/QueryXDSLResponseDBPoll"
+               xmlns:bpel="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+         xmlns:ui="http://xmlns.oracle.com/soa/designer" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:ns2="http://xmlns.oracle.com/pcbpel/adapter/db/top/QueryXDSLResponseDBPoll"
+         xmlns:oraext="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.ExtFunc"
+         xmlns:bpm="http://xmlns.oracle.com/bpmn20/extensions"
+         xmlns:xp20="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.Xpath20"
+         xmlns:ess="http://xmlns.oracle.com/scheduler" xmlns:hwf="http://xmlns.oracle.com/bpel/workflow/xpath"
+         xmlns:xref="http://www.oracle.com/XSL/Transform/java/oracle.tip.xref.xpath.XRefXPathFunctions"
+         xmlns:dvm="http://www.oracle.com/XSL/Transform/java/oracle.tip.dvm.LookupValue"
+         xmlns:bpws="http://schemas.xmlsoap.org/ws/2003/03/business-process/"
+         xmlns:xdk="http://schemas.oracle.com/bpel/extension/xpath/function/xdk"
+         xmlns:ids="http://xmlns.oracle.com/bpel/services/IdentityService/xpath"
+         xmlns:ldap="http://schemas.oracle.com/xpath/extension/ldap"
+         xmlns:ns3="http://xmlns.oracle.com/pcbpel/adapter/db/TTNET_SOA_12c/QueryXDSLResponseDB/UpdateXDSLResponse"
+         xmlns:ns4="http://xmlns.oracle.com/pcbpel/adapter/db/top/UpdateXDSLResponse"
+         xmlns:ns5="http://xmlns.ttnet.com.tr/Service/TakeOverOrderToXDSLProvEBF/TakeOverOrderToXDSLProvEBF"
+         xmlns:ns6="http://xmlns.ttnet.com.tr/Service/CancelOrderToXDSLProvEBF/CancelOrderToXDSLProvEBF"
+         xmlns:ns7="http://xmlns.ttnet.com.tr/Service/ChangeOrderToXDSLProvEBF/ChangeOrderToXDSLProvEBF"
+         xmlns:ns8="http://xmlns.ttnet.com.tr/Service/ProcessOrderToXDSLProvEBF/ProcessOrderToXDSLProvEBF"
+         xmlns:ns9="http://xmlns.ttnet.com.tr/Service/FaultHandlerABCS/FaultHandlerABCS"
+         xmlns:ns11="http://xmlns.ttnet.com.tr/CDM/EBO/Common" xmlns:ns10="http://xmlns.ttnet.com.tr/CDM/EBM/Order"
+         xmlns:ns12="http://xmlns.ttnet.com.tr/Service/MoveOrderToXDSLProvEBF/MoveOrderToXDSLProvEBF"
+         xmlns:ns13="http://xmlns.ttnet.com.tr/Service/ProcessUpdateProductCharacteristicsToXDSLProvEBF/ProcessUpdateProductCharacteristicsToXDSLProvEBF"
+         xmlns:ns14="http://xmlns.ttnet.com.tr/Services/UpdatePstnNoXDSLProvEBF/UpdatePstnNoXDSLProvEBF">
+
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      PARTNERLINKS                                                      
+      List of services participating in this BPEL process               
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <import namespace="http://xmlns.oracle.com/pcbpel/adapter/db/TTNET_SOA_12c/QueryXDSLResponseDB/QueryXDSLResponseDBPoll"
+          location="../WSDLs/QueryXDSLResponseDBPoll.wsdl" importType="http://schemas.xmlsoap.org/wsdl/"
+          ui:processWSDL="true"/>
+  <partnerLinks>
+    <!-- 
+      The 'client' role represents the requester of this service. It is 
+      used for callback. The location and correlation information associated
+      with the client role are automatically set using WS-Addressing.
+    -->
+    <partnerLink name="QueryXDSLResponseDB" partnerLinkType="ns1:QueryXDSLResponseDBPoll_plt" myRole="QueryXDSLResponseDBPoll_role"/>
+    <partnerLink name="UpdateXDSLResponse" partnerLinkType="ns3:UpdateXDSLResponse_plt"
+                 partnerRole="UpdateXDSLResponse_role"/>
+    <partnerLink name="TakeOverOrderToXDSLProvEBF" partnerLinkType="ns5:TakeOverOrderToXDSLProvEBF"
+                 partnerRole="TakeOverOrderToXDSLProvEBFProvider" myRole="TakeOverOrderToXDSLProvEBFRequester"/>
+    <partnerLink name="CancelOrderToXDSLProvEBF" partnerLinkType="ns6:CancelOrderToXDSLProvEBF"
+                 partnerRole="CancelOrderToXDSLProvEBFProvider" myRole="CancelOrderToXDSLProvEBFRequester"/>
+    <partnerLink name="ChangeOrderToXDSLProvEBF" partnerLinkType="ns7:ChangeOrderToXDSLProvEBF"
+                 partnerRole="ChangeOrderToXDSLProvABCSProvider" myRole="ChangeOrderToXDSLProvEBFRequester"/>
+    <partnerLink name="ProcessOrderToXDSLProvEBF" partnerLinkType="ns8:ProcessOrderToXDSLProvEBF"
+                 partnerRole="ProcessOrderToXDSLProvEBFProvider" myRole="ProcessOrderToXDSLProvEBFRequester"/>
+    <partnerLink name="FaultHandlerABCS" partnerLinkType="ns9:FaultHandlerABCS" partnerRole="FaultHandlerABCSProvider"/>
+    <partnerLink name="MoveOrderToXDSLProvEBF" partnerLinkType="ns12:MoveOrderToXDSLProvEBF"
+                 partnerRole="MoveOrderToXDSLProvEBFProvider" myRole="MoveOrderToXDSLProvEBFRequester"/>
+    <partnerLink name="ProcessUpdateProductCharacteristicsToXDSLProvEBF"
+                 partnerLinkType="ns13:ProcessUpdateProductCharacteristicsToXDSLProvEBF"
+                 partnerRole="ProcessUpdateProductCharacteristicsToXDSLProvEBFProvider"
+                 myRole="ProcessUpdateProductCharacteristicsToXDSLProvEBFRequester"/>
+    <partnerLink name="UpdatePstnNoXDSLProvEBF" partnerLinkType="ns14:UpdatePstnNoXDSLProvEBF"
+                 partnerRole="UpdatePstnNoXDSLProvEBFProvider" myRole="UpdatePstnNoXDSLProvEBFRequester"/>
+  </partnerLinks>
+
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      VARIABLES                                                        
+      List of messages and XML documents used within this BPEL process 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <variables>
+    <!-- Reference to the message passed as input during initiation -->
+    <variable name="inputVariable" messageType="ns1:XdslResponseCollection_msg"/>
+    <variable name="siraNO" type="xsd:string"/>
+    <variable name="InvokeUpdateDbInputVariable" messageType="ns3:XdslResponseCollection_msg"/>
+    <variable name="InvokeSendTakeOverCallbackInputVariable" messageType="ns5:ReceiveXDSLResponseMessage"/>
+    <variable name="InvokeCancelOrderToXDSLProvEBFCallbackInputVariable" messageType="ns6:ReceiveXDSLResponseMessage"/>
+    <variable name="InvokeChangeOrderToXDSLProvABCSCallbackInputVariable" messageType="ns7:ReceiveXDSLResponseMessage"/>
+    <variable name="InvokeProcessOrderToXDSLProvABCSCallbackInputVariable"
+              messageType="ns8:ReceiveXDSLResponseMessage"/>
+    <variable name="InvokeHandleFaultInputVariable" messageType="ns9:FaultHandlerABCSRequestMessage"/>
+    <variable name="InvokeHandleFaultOutputVariable" messageType="ns9:FaultHandlerABCSResponseMessage"/>
+    <variable name="InvokeProcessUpdateProductCharacteristicsToXDSLProvABCSInputVariable"
+              messageType="ns13:ReceiveXDSLResponseMessage"/>
+    <variable name="InvokeUpdatePstnNoXDSLProvEBFCallbackInputVariable" messageType="ns14:ReceiveXDSLResponseMessage"/>
+    <variable name="InvokeMoveOrderToXDSLProvEBFCallbackInputVariable" messageType="ns12:ReceiveXDSLResponseMessage"/>
+  </variables>
+
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     ORCHESTRATION LOGIC                                               
+     Set of activities coordinating the flow of messages across the    
+     services integrated within this business process                  
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <sequence name="main">
+
+    <!-- Receive input from requestor. (Note: This maps to operation defined in QueryXDSLResponseDB.wsdl) -->
+    <receive name="receiveInput" partnerLink="QueryXDSLResponseDB" portType="ns1:QueryXDSLResponseDBPoll_ptt" operation="receive" variable="inputVariable" createInstance="yes"/>
+    <assign name="Assign_siraNo">
+      <copy>
+        <from>$inputVariable.XdslResponseCollection/ns2:XdslResponse/ns2:sira</from>
+        <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$siraNO</to>
+      </copy>
+      <copy>
+        <from>oraext:setFlowInstanceTitle($siraNO)</from>
+        <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$siraNO</to>
+      </copy>
+    </assign>
+    <scope name="ScopeCallback">
+      <faultHandlers>
+        <catch faultName="ns9:BusinessFault">
+          <empty name="Empty_1"/>
+        </catch>
+      </faultHandlers>
+      <if name="If_branch">
+        <documentation>
+          <![CDATA[CancelOrderToXDSLProvEBF]]>
+        </documentation>
+        <condition>$inputVariable.XdslResponseCollection/ns2:XdslResponse/ns2:akis='CancelOrderToXDSLProvEBF'</condition>
+        <sequence name="Sequence_CancelOrder">
+          <assign name="TransformCancelOrderInput">
+            <bpelx:annotation>
+              <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+            </bpelx:annotation>
+            <copy>
+              <from>ora:doXSLTransformForDoc("../Transformations/Transformation_CancelOrderToXDSLProvEBF.xsl", $inputVariable.XdslResponseCollection)</from>
+              <to variable="InvokeCancelOrderToXDSLProvEBFCallbackInputVariable" part="payload"/>
+            </copy>
+          </assign>
+          <invoke name="InvokeCancelOrderCallback" bpelx:invokeAsDetail="no"
+                  partnerLink="CancelOrderToXDSLProvEBF" portType="ns6:CancelOrderToXDSLProvEBF"
+                  operation="receiveXdslResponse" inputVariable="InvokeCancelOrderToXDSLProvEBFCallbackInputVariable"/>
+        </sequence>
+        <elseif>
+          <documentation>
+            <![CDATA[TakeOverOrderToXDSLProvEBF]]>
+          </documentation>
+          <condition>$inputVariable.XdslResponseCollection/ns2:XdslResponse/ns2:akis='TakeOverOrderToXDSLProvEBF'</condition>
+          <sequence name="Sequence_TakeOverOrder">
+            <assign name="TransformTakeOverInput">
+              <bpelx:annotation>
+                <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+              </bpelx:annotation>
+              <copy>
+                <from>ora:doXSLTransformForDoc("../Transformations/Transformation_TakeOverOrderToXDSLProvABCS.xsl", $inputVariable.XdslResponseCollection)</from>
+                <to variable="InvokeSendTakeOverCallbackInputVariable" part="payload"/>
+              </copy>
+            </assign>
+            <invoke name="InvokeSendTakeOverCallback" bpelx:invokeAsDetail="no" partnerLink="TakeOverOrderToXDSLProvEBF"
+                    portType="ns5:TakeOverOrderToXDSLProvEBF" operation="receiveXdslResponse"
+                    inputVariable="InvokeSendTakeOverCallbackInputVariable"/>
+          </sequence>
+        </elseif>
+        <elseif>
+          <documentation>
+            <![CDATA[CreateSetupOrderForYdtXDSLProvABCS]]>
+          </documentation>
+          <condition>$inputVariable.XdslResponseCollection/ns2:XdslResponse/ns2:akis = 'CreateSetupOrderForYdtXDSLProvABCS'</condition>
+          <empty name="EmptyContinue"/>
+        </elseif>
+        <elseif>
+          <documentation>
+            <![CDATA[ChangeOrderToXDSLProvEBF]]>
+          </documentation>
+          <condition>$inputVariable.XdslResponseCollection/ns2:XdslResponse/ns2:akis = 'ChangeOrderToXDSLProvEBF'</condition>
+          <sequence name="Sequence_ChangeOrder">
+            <assign name="Transform_ChangeOrderToXDSLProvEBF">
+              <bpelx:annotation>
+                <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+              </bpelx:annotation>
+              <copy>
+                <from>ora:doXSLTransformForDoc("../Transformations/Transformation_ChangeOrder.xsl", $inputVariable.XdslResponseCollection)</from>
+                <to variable="InvokeChangeOrderToXDSLProvABCSCallbackInputVariable" part="payload"/>
+              </copy>
+            </assign>
+            <invoke name="InvokeChangeOrderToXDSLProvEBF" bpelx:invokeAsDetail="no"
+                    partnerLink="ChangeOrderToXDSLProvEBF" portType="ns7:ChangeOrderToXDSLProvEBF"
+                    operation="receiveXdslResponse"
+                    inputVariable="InvokeChangeOrderToXDSLProvABCSCallbackInputVariable"/>
+          </sequence>
+        </elseif>
+        <elseif>
+          <documentation>
+            <![CDATA[ProcessOrderToXDSLProvEBF]]>
+          </documentation>
+          <condition>$inputVariable.XdslResponseCollection/ns2:XdslResponse/ns2:akis='ProcessOrderToXDSLProvEBF'</condition><sequence name="Sequence_ProcessOrder"
+                                                                                                                                      xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+      <assign name="Transform_ProcessOrderToXDSLProvABCS">
+         <bpelx:annotation xmlns:bpelx="http://schemas.oracle.com/bpel/extension">
+            <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+         </bpelx:annotation>
+         <copy>
+            <from>ora:doXSLTransformForDoc("../Transformations/Transformation_ProcessOrderToXDSLProvEBF.xsl", $inputVariable.XdslResponseCollection)</from>
+            <to variable="InvokeProcessOrderToXDSLProvABCSCallbackInputVariable" part="payload"/>
+         </copy>
+      </assign>
+      <invoke name="InvokeProcessOrderToXDSLProvEBF" partnerLink="ProcessOrderToXDSLProvEBF"
+              portType="ns8:ProcessOrderToXDSLProvEBF" operation="receiveXdslResponse"
+              inputVariable="InvokeProcessOrderToXDSLProvABCSCallbackInputVariable"
+              xmlns:bpelx="http://schemas.oracle.com/bpel/extension" bpelx:invokeAsDetail="no"/>
+   </sequence></elseif>
+        <elseif>
+          <documentation>
+            <![CDATA[MoveOrderToXDSLProvEBF]]>
+          </documentation>
+          <condition>$inputVariable.XdslResponseCollection/ns2:XdslResponse/ns2:akis='MoveOrderToXDSLProvEBF'</condition>
+          <sequence name="Sequence_MoveOrder">
+            <assign name="Transform_MoveOrderToXDSLProvEBF">
+              <bpelx:annotation>
+                <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+              </bpelx:annotation>
+              <copy>
+                <from>ora:doXSLTransformForDoc("../Transformations/Transformation_MoveOrderToXDSLProvABCS.xsl", $inputVariable.XdslResponseCollection)</from>
+                <to variable="InvokeMoveOrderToXDSLProvEBFCallbackInputVariable" part="payload"/>
+              </copy>
+            </assign>
+            <invoke name="InvokeMoveOrderToXDSLProvABCS"
+                    partnerLink="MoveOrderToXDSLProvEBF" portType="ns12:MoveOrderToXDSLProvEBF"
+                    operation="receiveXdslResponse"
+                    inputVariable="InvokeMoveOrderToXDSLProvEBFCallbackInputVariable" bpelx:invokeAsDetail="no"/>
+          </sequence>
+        </elseif>
+        <elseif>
+          <documentation>
+            <![CDATA[ProcessUpdateProductCharacteristicsToXDSLProvEBF]]>
+          </documentation>
+          <condition>$inputVariable.XdslResponseCollection/ns2:XdslResponse/ns2:akis='ProcessUpdateProductCharacteristicsToXDSLProvEBF'</condition>
+          <sequence name="Sequence_ProcessUpdateProductCharacteristics">
+            <assign name="Transformation_ProcessUpdateProductCharacteristicsToXDSLProvEBF">
+              <bpelx:annotation>
+                <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+              </bpelx:annotation>
+              <copy>
+                <from>ora:doXSLTransformForDoc("../Transformations/Transformation_ProcessUpdateProductCharacteristicsToXDSLProvABCS.xsl", $inputVariable.XdslResponseCollection)</from>
+                <to variable="InvokeProcessUpdateProductCharacteristicsToXDSLProvABCSInputVariable" part="payload"/>
+              </copy>
+            </assign>
+            <invoke name="InvokeProcessUpdateProductCharacteristicsToXDSLProvEBF" bpelx:invokeAsDetail="no"
+                    partnerLink="ProcessUpdateProductCharacteristicsToXDSLProvEBF"
+                    portType="ns13:ProcessUpdateProductCharacteristicsToXDSLProvEBF" operation="receiveXdslResponse"
+                    inputVariable="InvokeProcessUpdateProductCharacteristicsToXDSLProvABCSInputVariable"/>
+          </sequence>
+        </elseif>
+        <elseif>
+          <documentation>
+            <![CDATA[UpdatePstnNoXDSLProvEBF]]>
+          </documentation>
+          <condition>$inputVariable.XdslResponseCollection/ns2:XdslResponse/ns2:akis='UpdatePstnNoXDSLProvEBF'</condition>
+          <sequence xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable" name="Sequence_UpdatePstnNo">
+      <assign name="TransformUpdatePstnNoXDSLProvEBF">
+         <bpelx:annotation xmlns:bpelx="http://schemas.oracle.com/bpel/extension">
+            <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+         </bpelx:annotation>
+         <copy>
+            <from>ora:doXSLTransformForDoc("../Transformations/TransformationUpdatePstnNoXDSLProvEBF.xsl", $inputVariable.XdslResponseCollection)</from>
+            <to variable="InvokeUpdatePstnNoXDSLProvEBFCallbackInputVariable" part="payload"/>
+         </copy>
+      </assign>
+      <invoke name="InvokeUpdatePstnNoXDSLProvEBF"
+              partnerLink="UpdatePstnNoXDSLProvEBF"
+              portType="ns14:UpdatePstnNoXDSLProvEBF" operation="receiveXdslResponse"
+              inputVariable="InvokeUpdatePstnNoXDSLProvEBFCallbackInputVariable"
+              xmlns:bpelx="http://schemas.oracle.com/bpel/extension" bpelx:invokeAsDetail="no"/>
+   </sequence></elseif>
+        <else>
+          <documentation>
+            <![CDATA[NO]]>
+          </documentation>
+          <sequence name="Sequence_Else">
+            <assign name="Assign_UnDefined_Reason">
+              <copy>
+                <from>$inputVariable.XdslResponseCollection/ns2:XdslResponse/ns2:akis + ' UnDefined In Swich Cases'</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeHandleFaultInputVariable.payload/ns10:RequestResponseType/ns11:RETURN_MESSAGE</to>
+              </copy>
+            </assign>
+            <invoke name="InvokeHandleFault" bpelx:invokeAsDetail="no" partnerLink="FaultHandlerABCS"
+                    portType="ns9:FaultHandlerABCS" operation="HandleFault"
+                    inputVariable="InvokeHandleFaultInputVariable" outputVariable="InvokeHandleFaultOutputVariable"/>
+          </sequence>
+        </else>
+      </if>
+    </scope>
+    <scope name="ScopeIUpdateDB">
+      <sequence name="Sequence">
+        <assign name="AssignDBUpdateInput">
+          <copy>
+            <from>$inputVariable.XdslResponseCollection/ns2:XdslResponse/ns2:il</from>
+            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeUpdateDbInputVariable.XdslResponseCollection/ns4:XdslResponse/ns4:il</to>
+          </copy>
+          <copy>
+            <from>$inputVariable.XdslResponseCollection/ns2:XdslResponse/ns2:mudurluk</from>
+            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeUpdateDbInputVariable.XdslResponseCollection/ns4:XdslResponse/ns4:mudurluk</to>
+          </copy>
+          <copy>
+            <from>$inputVariable.XdslResponseCollection/ns2:XdslResponse/ns2:sira</from>
+            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeUpdateDbInputVariable.XdslResponseCollection/ns4:XdslResponse/ns4:sira</to>
+          </copy>
+          <copy>
+            <from>'DONE'</from>
+            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeUpdateDbInputVariable.XdslResponseCollection/ns4:XdslResponse/ns4:status</to>
+          </copy>
+          <copy>
+            <from>xp20:current-dateTime()</from>
+            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeUpdateDbInputVariable.XdslResponseCollection/ns4:XdslResponse/ns4:updateDate</to>
+          </copy>
+        </assign>
+        <invoke name="InvokeUpdateDb" bpelx:invokeAsDetail="no" partnerLink="UpdateXDSLResponse"
+                portType="ns3:UpdateXDSLResponse_ptt" operation="update" inputVariable="InvokeUpdateDbInputVariable"/>
+      </sequence>
+    </scope>
+  </sequence>
+</process>

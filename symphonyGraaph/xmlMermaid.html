@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>jQuery.getJSON demo</title>
+  <style>
+  img {
+    height: 100px;
+    float: left;
+  }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+  <script src="lib/parser.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@8.4.0/dist/mermaid.min.js"></script>
+  <script>
+  mermaid.initialize({
+    mermaid : {
+        startOnLoad: true,
+    },
+    securityLevel: 'loose',
+})</script>
+</head>
+<body>
+    
+    <div class="mermaid" id="graph"></div>
+    <span class="float-right" style="color: rgb(231, 0, 0)"><span id="lengthoutput" style="margin:5px">0</span> bytes</span>
+    <textarea id="result" style="width: 100%; height: 500px;" class="form-control" placeholder="Output"></textarea>
+    <textarea id="nam" style="width: 100%; height: 500px;" class="form-control" placeholder="Name"></textarea>
+    <script>
+        var config1 = {
+            theme:'forest',
+            logLevel:'fatal',
+            securityLevel:'strict',
+            startOnLoad:false,
+            arrowMarkerAbsolute:false,
+        }
+        var elseFlag=0;
+        var elseIfFlag=0;
+        var ayrac='-->';
+        var xmlDoc;
+        var parser;
+        var ifDeger;
+        var txt;
+        var compCount=0;
+        var Xml;
+        var graphId=0;
+        var graphText="graph TD\nsubgraph deneme\n";
+        function buildParsingConfig(){
+            var config = {
+                attributeNamePrefix : "",
+                ignoreAttributes : false,
+                
+            };
+            return config;
+        }
+        console.log(getSecondPart("1((receiveInput))-->2[Assign1]\n2[Assign1]-->3[Assign2]"));
+        function getSecondPart(str) {
+            return str.split('-->')[2];
+        }
+        readXML();
+        //Graph(graphText);
+        function loadXMLDoc(dname)
+        {
+            if (window.XMLHttpRequest)
+            {
+                xhttp=new XMLHttpRequest();
+            }
+            else
+            {
+                xhttp=new ActiveXObject("Microsoft.XMLHTTP");
+            }
+            xhttp.open("GET",dname,false);
+            xhttp.send();
+            return xhttp.responseXML;
+        }
+        function readXML(){
+            xmlDoc=loadXMLDoc("deneme.bpel");
+            //findXML(xmlDoc);
+            getXml(xmlDoc.getElementsByTagName("sequence")[0]);
+            Graph(graphText);
+        }
+        function getXml(xmlData){
+            console.log(xmlData);
+            for(var i=0;i<xmlData.children.length;i++){
+                var compName=xmlData.children[i].nodeName;
+                if(compName==='assign'){
+                    isAssign(xmlData.children[i].outerHTML);
+                }else if(compName==='receive'){
+                    isReceive(xmlData.children[i].outerHTML);
+                }else if(compName==='invoke'){
+                    isInvoke(xmlData.children[i].outerHTML);
+                }else if(compName==='empty'){
+                    isEmpty(xmlData.children[i].outerHTML);
+                }else if(compName==='reply'){
+                    isReply(xmlData.children[i].outerHTML)
+                }else if(compName==='while'){
+                    isWhile(xmlData.children[i].outerHTML);
+                }else if(compName==='forEach'){
+                    isForEach(xmlData.children[i].outerHTML);
+                }else if(compName==='wait'){
+                    isWait(xmlData.children[i].outerHTML);
+                }else if(compName==='scope'){
+                    var innerXml=xmlData.children[i].outerHTML;
+                    parser1 = new DOMParser();
+                    var parseString = parser1.parseFromString(innerXml,"text/xml");
+                    getXml(parseString.getElementsByTagName("scope")[0]);
+                    //getXml(innerXml.getElementsByTagName('scope')[0]);
+                }else if(compName==='sequence'){
+                    var innerXml=xmlData.children[i].outerHTML;
+                    parser1 = new DOMParser();
+                    var parseString = parser1.parseFromString(innerXml,"text/xml");
+                    getXml(parseString.getElementsByTagName("sequence")[0]);
+                }
+                else if(compName==='if'){
+                    isIf(xmlData.children[i].outerHTML);
+                    var innerXml=xmlData.children[i].outerHTML;
+                    parser1 = new DOMParser();
+                    var parseString = parser1.parseFromString(innerXml,"text/xml");
+                    getXml(parseString.getElementsByTagName("if")[0]);
+                }else if(compName==='elseif'){
+                    isElseIf(xmlData.children[i].outerHTML);
+                    var innerXml=xmlData.children[i].outerHTML;
+                    parser1 = new DOMParser();
+                    var parseString = parser1.parseFromString(innerXml,"text/xml");
+                    getXml(parseString.getElementsByTagName("elseif")[0]);
+                }else if(compName==='else'){
+                    isElse(xmlData.children[i].outerHTML);
+                    var innerXml=xmlData.children[i].outerHTML;
+                    parser1 = new DOMParser();
+                    var parseString = parser1.parseFromString(innerXml,"text/xml");
+                    getXml(parseString.getElementsByTagName("else")[0]);
+                    console.log("else girdi")
+                }
+            }
+        }
+        function isElse(obj){
+            var sonuc = parser.parse(obj,buildParsingConfig());
+            for(const value in sonuc){
+                var val=sonuc[value];
+                createElse(val);
+            }
+        }
+        function isElseIf(obj){
+            var sonuc = parser.parse(obj,buildParsingConfig());
+            for(const value in sonuc){
+                var val=sonuc[value];
+                createElseIf(val);
+            }
+        }
+        function isIf(obj){
+            var sonuc = parser.parse(obj,buildParsingConfig());
+            for(const value in sonuc){
+                var val=sonuc[value];
+                createIf(val);
+            }
+        }
+        function isReceive(obj){
+            var sonuc = parser.parse(obj,buildParsingConfig());
+            for(const value in sonuc){
+                var val=sonuc[value];
+                createReceive(val);
+            }
+        }
+        function isAssign(obj){
+            var sonuc = parser.parse(obj,buildParsingConfig());
+            for(const value in sonuc){
+                var val=sonuc[value];
+                createAssign(val);
+            }
+        }
+        function isInvoke(obj){
+            var sonuc = parser.parse(obj,buildParsingConfig());
+            for(const value in sonuc){
+                var val=sonuc[value];
+                createInvoke(val);
+            }
+        }
+        function isEmpty(obj){
+            var sonuc = parser.parse(obj,buildParsingConfig());
+            for(const value in sonuc){
+                var val=sonuc[value];
+                createEmpty(val);
+            }
+        }
+        function isReply(obj){
+            var sonuc = parser.parse(obj,buildParsingConfig());
+            for(const value in sonuc){
+                var val=sonuc[value];
+                createReply(val);
+            }
+        }
+        function createElseIf(obj){
+            elseIfFlag=1;
+            console.log(elseIfFlag);
+        }
+        function createElse(obj){
+            elseFlag=1;
+            console.log(elseFlag);
+        }
+        function createIf(obj){
+            compCount+=1;
+            graphId+=1;
+            console.log(obj.name);
+            ifDeger=graphId;
+            if(graphId>2){
+                if(compCount%2!=0 && ayrac=="-->"){
+                    ayrac="\n";
+                    str=graphText.split('-->')[graphId-2];
+                    str+='-->'
+                    graphText+=ayrac+str+graphId+"{"+obj.name+"}";
+                }else{
+                    ayrac="-->"
+                    graphText+=ayrac+graphId+"{"+obj.name+"}";
+                }
+            }else{
+                ayrac="-->"
+                graphText+=ayrac+graphId+"{"+obj.name+"}";
+            }
+            var ifText=graphId+"{"+obj.name+"}";
+            console.log(ifText);
+        }
+        function createAssign(obj){
+            compCount+=1;
+            graphId+=1;
+            graphText+="\n click "+graphId+" showAssign \n";
+                if(graphId>2){
+                    if(ayrac=="-->"){
+                        ayrac="\n";
+                        str=graphText.split('-->')[graphId-2];
+                        str+='-->'
+                        graphText+=ayrac+str+graphId+"["+obj.name+"]";
+                        ayrac="-->"
+                    }else{
+                        ayrac="-->"
+                        graphText+=ayrac+graphId+"["+obj.name+"]";
+                    }
+                }else{
+                    ayrac="-->"
+                    graphText+=ayrac+graphId+"["+obj.name+"]";
+                }
+            
+        }
+        function createInvoke(obj){
+            compCount+=1;
+            graphId+=1;
+            if(graphId>2){
+                if(ayrac=="-->"){
+                    ayrac="\n";
+                    str=graphText.split('-->')[graphId-2];
+                    str+='-->'
+                    graphText+=ayrac+str+graphId+"["+obj.name+"]";
+                    ayrac="-->"
+                }else{
+                    ayrac="-->"
+                    graphText+=ayrac+graphId+"["+obj.name+"]";
+                }
+            }else{
+                ayrac="-->"
+                graphText+=ayrac+graphId+"["+obj.name+"]";
+            }
+        }
+        function createEmpty(obj){
+            compCount+=1;
+            graphId+=1;
+            if(graphId>2){
+                if(ayrac=="-->"){
+                    ayrac="\n";
+                    str=graphText.split('-->')[graphId-2];
+                    str+='-->'
+                    graphText+=ayrac+str+graphId+"("+obj.name+")";
+                    ayrac="-->"
+                }else{
+                    ayrac="-->"
+                    graphText+=ayrac+graphId+"("+obj.name+")";
+                }
+            }else{
+                ayrac="-->"
+                graphText+=ayrac+graphId+"["+obj.name+"]";
+            }
+        }
+        function createReceive(obj){
+            compCount+=1;
+            graphId+=1;
+            
+            if(graphId>1){
+                if(graphId>2){
+                    if(ayrac=="-->"){
+                        ayrac="\n";
+                        str=graphText.split('-->')[graphId-2];
+                        str+='-->'
+                        graphText+=ayrac+str+graphId+"("+obj.name+")";
+                        ayrac="-->"
+                    }else{
+                        ayrac="-->"
+                        graphText+=ayrac+graphId+"("+obj.name+")";
+                    }
+            }else{
+                ayrac="-->"
+                graphText+=ayrac+graphId+"["+obj.name+"]";
+            }
+
+            }else{
+                graphText+=graphId+"(("+obj.name+"))";
+            }
+            
+        }
+        function showAssign(){
+            console.log("assign tıklandı");
+        }
+        function updateOutputLength(data){
+            $("#lengthoutput")[0].innerText = data.length;
+        }
+
+        function Graph(graphText){
+            
+            graphText+='\nend\nclick 2 callback';
+            
+            console.log(graphText);
+            document.getElementById("graph").innerHTML=graphText;
+            //var graph=graphText+"subgraph "+seqAd+"\n A(("+receiveAd+")) --> B("+assignAd+")\n end";
+            /*var mermaidNode = document.getElementById("mermaid");
+            mermaidNode.removeAttribute("data-processed");
+            mermaidNode.replaceChild(document.createTextNode(graphText), mermaidNode.firstChild);
+            mermaid.init(undefined, mermaidNode);
+            mermaid.initialize(config1);*/
+        }
+        isObject = function(a) {
+            return (!!a) && (a.constructor === Object);
+        };
+
+        isArray = function(a) {
+            return (!!a) && (a.constructor === Array);
+        };
+    var callback = function(){
+        alert("click çalıştı");
+    }
+    </script>
+</body>
+</html>

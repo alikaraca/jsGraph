@@ -1,0 +1,289 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  Oracle JDeveloper BPEL Designer 
+  
+  Created: Sat Nov 10 21:01:50 EET 2018
+  Author:  enes.ozel
+  Type: BPEL 2.0 Process
+  Purpose: Asynchronous BPEL Process
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-->
+<process name="DeactivationOrderToOLOEBF"
+         targetNamespace="http://xmlns.ttnet.com/services/DeactivationOrderToOLOEBF/DeactivationOrderToOLOEBF"
+         xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+         xmlns:client="http://xmlns.ttnet.com/services/DeactivationOrderToOLOEBF/DeactivationOrderToOLOEBF"
+         xmlns:ora="http://schemas.oracle.com/xpath/extension"
+         xmlns:bpelx="http://schemas.oracle.com/bpel/extension"
+         xmlns:ns1="http://xmlns.ttnet.com.tr/services/DeactivationOrderToOLOEBF/DeactivationOrderToOLOEBF"
+         xmlns:bpel="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+         xmlns:ui="http://xmlns.oracle.com/soa/designer" xmlns:ns16="http://xmlns.ttnet.com.tr/CDM/EBO/Campaign"
+         xmlns:ns17="http://xmlns.ttnet.com.tr/CDM/EBO/WorkOrganization"
+         xmlns:ns10="http://xmlns.ttnet.com.tr/CDM/EBO/Community"
+         xmlns:ns20="http://xmlns.ttnet.com.tr/CDM/EBO/ResourceSpecification"
+         xmlns:ns6="http://xmlns.ttnet.com.tr/CDM/EBO/Corporate" xmlns:ns9="http://xmlns.ttnet.com.tr/CDM/EBO/Contact"
+         xmlns:ns19="http://xmlns.ttnet.com.tr/CDM/EBO/Service"
+         xmlns:ns7="http://xmlns.ttnet.com.tr/CDM/EBO/Individual"
+         xmlns:ns13="http://xmlns.ttnet.com.tr/CDM/EBO/Product" xmlns:ns8="http://xmlns.ttnet.com.tr/CDM/EBO/Address"
+         xmlns:ns11="http://xmlns.ttnet.com.tr/CDM/EBO/Util" xmlns:ns18="http://xmlns.ttnet.com.tr/CDM/EBO/User"
+         xmlns:ns12="http://xmlns.ttnet.com.tr/CDM/EBO/Segment" xmlns:ns4="http://xmlns.ttnet.com.tr/CDM/EBO/Order"
+         xmlns:ns14="http://xmlns.ttnet.com.tr/CDM/EBO/Billing"
+         xmlns:ns21="http://xmlns.ttnet.com.tr/CDM/EBO/CustomerAccount"
+         xmlns:ns15="http://xmlns.ttnet.com.tr/CDM/EBO/Payment" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:ns3="http://xmlns.ttnet.com.tr/CDM/EBO/Common" xmlns:ns2="http://xmlns.ttnet.com.tr/CDM/EBM/Order"
+         xmlns:ns5="http://xmlns.ttnet.com.tr/CDM/EBO/Customer"
+         xmlns:ns22="http://xmlns.ttnet.com/services/ManageProductOrderServiceTTNETSISProvABCS/ManageProductOrderServiceTTNETSISProvABCS"
+         xmlns:ns23="http://xmlns.ttnet.com.tr/Service/FaultHandlerABCS/FaultHandlerABCS"
+         xmlns:ns24="http://xmlns.ttnet.com.tr/services/CancelOrderToOLOProvEBF/CancelOrderToOLOProvEBF"
+         xmlns:ns25="http://xmlns.ttnet.com.tr/Service/ProductEBS/ProductEBS"
+         xmlns:ns27="http://xmlns.ttnet.com.tr/CDM/EBO/Document"
+         xmlns:ns26="http://xmlns.ttnet.com.tr/CDM/EBO/ProductOffer"
+         xmlns:oraext="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.ExtFunc"
+         xmlns:bpws="http://schemas.xmlsoap.org/ws/2003/03/business-process/"
+         xmlns:xdk="http://schemas.oracle.com/bpel/extension/xpath/function/xdk"
+         xmlns:ids="http://xmlns.oracle.com/bpel/services/IdentityService/xpath"
+         xmlns:bpm="http://xmlns.oracle.com/bpmn20/extensions"
+         xmlns:xp20="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.Xpath20"
+         xmlns:ess="http://xmlns.oracle.com/scheduler" xmlns:hwf="http://xmlns.oracle.com/bpel/workflow/xpath"
+         xmlns:xref="http://www.oracle.com/XSL/Transform/java/oracle.tip.xref.xpath.XRefXPathFunctions"
+         xmlns:dvm="http://www.oracle.com/XSL/Transform/java/oracle.tip.dvm.LookupValue"
+         xmlns:ldap="http://schemas.oracle.com/xpath/extension/ldap">
+
+    <!-- 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        PARTNERLINKS                                                      
+        List of services participating in this BPEL process               
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    -->
+    <import namespace="http://xmlns.ttnet.com.tr/services/DeactivationOrderToOLOEBF/DeactivationOrderToOLOEBF"
+            location="oramds:/apps/datamodel/EnterpriseBusinessFlowLibrary/DeactivationOrderToOLOEBF.wsdl"
+            importType="http://schemas.xmlsoap.org/wsdl/" ui:processWSDL="true"/>
+    <partnerLinks>
+        <!-- 
+      The 'client' role represents the requester of this service. It is 
+      used for callback. The location and correlation information associated
+      with the client role are automatically set using WS-Addressing.
+    -->
+        <partnerLink name="DeactivationOrderToOLOEBF" partnerLinkType="ns1:DeactivationOrderToOLOEBF" myRole="DeactivationOrderToOLOEBFProvider" partnerRole="DeactivationOrderToOLOEBFRequester"/>
+        <partnerLink name="ManageProductOrderServiceTTNETSISProvABCS"
+                     partnerLinkType="ns22:ManageProductOrderServiceTTNETSISProvABCS"
+                     partnerRole="ManageProductOrderServiceTTNETSISProvABCSProvider"/>
+        <partnerLink name="FaultHandlerABCS" partnerLinkType="ns23:FaultHandlerABCS"
+                     partnerRole="FaultHandlerABCSProvider"/>
+        <partnerLink name="CancelOrderToOLOProvEBF" partnerLinkType="ns24:CancelOrderToOLOProvEBF"
+                     partnerRole="CancelOrderToOLOProvEBFProvider" myRole="CancelOrderToOLOProvEBFRequester"/>
+        <partnerLink name="ProductEBS" partnerLinkType="ns25:ProductEBS" partnerRole="ProductEBS"
+                     myRole="ProductEBSCallback"/>
+    </partnerLinks>
+
+    <!-- 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        VARIABLES                                                        
+        List of messages and XML documents used within this BPEL process 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    -->
+    <variables>
+        <!-- Reference to the message passed as input during initiation -->
+        <variable name="inputVariable" messageType="ns1:DeactivationOrderToOLOEBFRequestMessage"/>
+
+        <!-- Reference to the message that will be sent back to the requester during callback -->
+        <variable name="outputVariable" messageType="ns1:DeactivationOrderToOLOEBFResponseMessage"/>
+        <variable name="InvokeCancelOloInputVariable" messageType="ns24:CancelOrderToOLOProvEBFRequestMessage"/>
+        <variable name="ReceiveCancelOloInputVariable" messageType="ns24:CancelOrderToOLOProvEBFResponseMessage"/>
+        <variable name="InvokeCancelBossInputVariable" messageType="ns25:CancelProvisionRequestMessage"/>
+        <variable name="ReceiveCancellBoss_ProcessCancelOrderResponse_InputVariable"
+                  messageType="ns25:CancelProvisionCallbackMessage"/>
+        <variable name="ManageProductOrderServiceTTNETSISDeactivationOrderInput"
+                  messageType="ns22:DeactivationOrderRequestMessage"/>
+        <variable name="ManageProductOrderServiceTTNETSISDeactivationOrderOutputVariable"
+                  messageType="ns22:DeactivationOrderResponseMessage"/>
+        <variable name="InvokeFaultHandlerInputVariable" messageType="ns23:FaultHandlerABCSRequestMessage"/>
+        <variable name="InvokeFaultHandlerOutputVariable" messageType="ns23:FaultHandlerABCSResponseMessage"/>
+    </variables>
+
+    <!-- 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+       ORCHESTRATION LOGIC                                               
+       Set of activities coordinating the flow of messages across the    
+       services integrated within this business process                  
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    -->
+    <sequence name="main">
+        <!-- Receive input from requestor. (Note: This maps to operation defined in DeactivationOrderToOLOEBF.wsdl) -->
+        <receive name="receiveInput" partnerLink="DeactivationOrderToOLOEBF" portType="ns1:DeactivationOrderToOLOEBF" operation="process" variable="inputVariable" createInstance="yes"/>
+        <assign name="AssignInputToOutput">
+            <copy>
+                <from>$inputVariable.payload</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload</to>
+            </copy>
+        </assign>
+        <assign name="AssignCancelOloInput">
+            <copy>
+                <from>$inputVariable.payload</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeCancelOloInputVariable.payload</to>
+            </copy>
+            <extensionAssignOperation>
+                <bpelx:remove>
+                    <bpelx:target expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeCancelOloInputVariable.payload/ns2:CancelOrder/ns4:DEACTIVATED_ORDERS</bpelx:target>
+                </bpelx:remove>
+            </extensionAssignOperation>
+            <extensionAssignOperation>
+                <bpelx:append>
+                    <bpelx:from expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$inputVariable.payload/ns2:CancelOrder/ns4:DEACTIVATED_ORDERS[ns4:SERVICE/ns19:PROVISION_SERVICE_CODE="tt_thkservice" or ns4:SERVICE/ns19:PROVISION_SERVICE_CODE="tt_singlethkservice"]</bpelx:from>
+                    <bpelx:to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeCancelOloInputVariable.payload/ns2:CancelOrder</bpelx:to>
+                </bpelx:append>
+            </extensionAssignOperation>
+        </assign>
+        <if name="If_ISS_CHURN_ADSLNO">
+            <documentation>
+                <![CDATA[If found ISS_CHURN_ADSLNO]]>
+            </documentation>
+            <condition>$inputVariable.payload/ns2:RequestInfo/ns3:INQUIREType='ISS_CHURN_ADSLNO'</condition>
+            <empty name="EmptyISS_CHURN_ADSLNO"/>
+            <else>
+                <sequence name="Sequence1">
+                    <invoke name="InvokeCancelOlo" bpelx:invokeAsDetail="no" partnerLink="CancelOrderToOLOProvEBF"
+                            portType="ns24:CancelOrderToOLOProvEBF" operation="process"
+                            inputVariable="InvokeCancelOloInputVariable"/>
+                    <receive name="ReceiveCancelOlo" partnerLink="CancelOrderToOLOProvEBF"
+                             portType="ns24:CancelOrderToOLOProvEBFCallback" operation="processResponse"
+                             variable="ReceiveCancelOloInputVariable"/>
+                </sequence>
+            </else>
+        </if>
+        <if name="IsCancelled">
+            <documentation>
+                <![CDATA[IF : Found REAL_SALE and tt_convertpstntothk]]>
+            </documentation>
+            <condition>$inputVariable.payload/ns2:RequestInfo/ns3:ACTION_REASON_CODE = 'REAL_SALE' and $inputVariable.payload/ns2:CancelOrder/ns4:DEACTIVATED_ORDERS/ns4:PRODUCT/ns13:PRODUCT_CHAR_VALUE_LIST/ns13:PRODUCT_CHAR_VALUE[ns13:PRODUCT_CHAR_NAME="tt_convertpstntothk"]/ns13:PRODUCT_CHAR_VALUE = 'H'</condition>
+            <assign name="AssignSuccess">
+                <copy>
+                    <from>'100'</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/ns2:RequestInfo/ns3:RETURN_CODE</to>
+                </copy>
+                <copy>
+                    <from>'SUCCESS'</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/ns2:RequestInfo/ns3:RETURN_MESSAGE</to>
+                </copy>
+            </assign>
+            <elseif>
+                <documentation>
+                    <![CDATA[Cancel]]>
+                </documentation>
+                <condition>$ReceiveCancelOloInputVariable.payload/ns2:RequestInfo/ns3:RETURN_CODE = string(ora:getPreference('Cancel'))</condition>
+                <assign name="AssignCancelled">
+                    <copy>
+                        <from>string(ora:getPreference('Cancel'))</from>
+                        <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/ns2:RequestInfo/ns3:RETURN_CODE</to>
+                    </copy>
+                    <copy>
+                        <from>'CANCELLED'</from>
+                        <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/ns2:RequestInfo/ns3:RETURN_MESSAGE</to>
+                    </copy>
+                </assign>
+            </elseif>
+            <else>
+                <sequence name="Sequence6">
+                    <if name="If_270166_OFF">
+                        <documentation>
+                            <![CDATA[TYS OFF-270166]]>
+                        </documentation>
+                        <condition>oraext:lookup-table('CR_STATUS','CR_NUMBER','270166','STATUS','jdbc/CustomSOADataSource') = 'OFF'</condition>
+                        <sequence name="SequenceCancelBoss">
+                            <assign name="AssignInputCancelBoss"
+                                    xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable">
+                                <copy>
+                                    <from>$inputVariable.payload</from>
+                                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeCancelBossInputVariable.payload</to>
+                                </copy>
+                                <extensionAssignOperation>
+                                    <bpelx:append xmlns:bpelx="http://schemas.oracle.com/bpel/extension">
+                                        <bpelx:from expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$inputVariable.payload/ns2:CancelOrder/ns4:DEACTIVATED_ORDERS[ns4:SERVICE/ns19:PROVISION_SERVICE_CODE="tt_thkservice" or ns4:SERVICE/ns19:PROVISION_SERVICE_CODE="tt_singlethkservice"]</bpelx:from>
+                                        <bpelx:to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeCancelBossInputVariable.payload/ns2:CancelOrder</bpelx:to>
+                                    </bpelx:append>
+                                </extensionAssignOperation>
+                            </assign>
+                            <assign name="AssignTargetSystem">
+                                <copy>
+                                    <from>'BOSS'</from>
+                                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeCancelBossInputVariable.payload/ns2:RequestInfo/ns3:TARGET_SYSTEM_NAME</to>
+                                </copy>
+                            </assign>
+                            <invoke name="InvokeCancelBoss"
+                                    inputVariable="InvokeCancelBossInputVariable" bpelx:invokeAsDetail="no"
+                                    partnerLink="ProductEBS" portType="ns25:ProductEBS" operation="ProcessCancelOrder"/>
+                            <receive name="ReceiveCancellBoss" partnerLink="ProductEBS"
+                                     portType="ns25:ProductEBSCallback" operation="ProcessCancelOrderResponse"
+                                     variable="ReceiveCancellBoss_ProcessCancelOrderResponse_InputVariable"/>
+                        </sequence>
+                        <else>
+                            <sequence name="SequenceTTNETSIS">
+                                <assign name="TransformManageProductOrderServiceInput">
+                                    <bpelx:annotation>
+                                        <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+                                    </bpelx:annotation>
+                                    <copy>
+                                        <from>ora:doXSLTransformForDoc("../Transformations/TransformManageProductOrderServiceInput.xsl", $inputVariable.payload)</from>
+                                        <to variable="ManageProductOrderServiceTTNETSISDeactivationOrderInput"
+                                            part="payload"/>
+                                    </copy>
+                                </assign>
+                                <scope name="ScopeTTNETSIS">
+                                    <sequence name="Sequence4">
+                                        <invoke name="InvokeManageProductOrderServiceTTNETSIS"
+                                                bpelx:invokeAsDetail="no"
+                                                partnerLink="ManageProductOrderServiceTTNETSISProvABCS"
+                                                portType="ns22:ManageProductOrderServiceTTNETSISProvABCS"
+                                                operation="DeactivationOrder"
+                                                inputVariable="ManageProductOrderServiceTTNETSISDeactivationOrderInput"
+                                                outputVariable="ManageProductOrderServiceTTNETSISDeactivationOrderOutputVariable"/>
+                                        <if name="If3">
+                                            <documentation>
+                                                <![CDATA[if 100 SUCCESS]]>
+                                            </documentation>
+                                            <condition>$ManageProductOrderServiceTTNETSISDeactivationOrderOutputVariable.payload/ns2:RequestInfo/ns3:RETURN_CODE='100'</condition>
+                                            <empty name="EmptySuccess"/>
+                                            <else>
+                                                <sequence name="Sequence5">
+                                                    <assign name="AssignFaultHandlerInput">
+                                                        <copy>
+                                                            <from>$ManageProductOrderServiceTTNETSISDeactivationOrderOutputVariable.payload/ns2:RequestInfo/ns3:RETURN_CODE</from>
+                                                            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeFaultHandlerInputVariable.payload/ns2:RequestResponseType/ns3:RETURN_CODE</to>
+                                                        </copy>
+                                                        <copy>
+                                                            <from>$ManageProductOrderServiceTTNETSISDeactivationOrderOutputVariable.payload/ns2:RequestInfo/ns3:RETURN_MESSAGE</from>
+                                                            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InvokeFaultHandlerInputVariable.payload/ns2:RequestResponseType/ns3:RETURN_MESSAGE</to>
+                                                        </copy>
+                                                    </assign>
+                                                    <invoke name="InvokeFaultHandler" bpelx:invokeAsDetail="no"
+                                                            partnerLink="FaultHandlerABCS"
+                                                            portType="ns23:FaultHandlerABCS" operation="HandleFault"
+                                                            inputVariable="InvokeFaultHandlerInputVariable"
+                                                            outputVariable="InvokeFaultHandlerOutputVariable"/>
+                                                </sequence>
+                                            </else>
+                                        </if>
+                                    </sequence>
+                                </scope>
+                            </sequence>
+                        </else>
+                    </if>
+                    <assign name="AssignSuccess">
+                        <copy>
+                            <from>'100'</from>
+                            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/ns2:RequestInfo/ns3:RETURN_CODE</to>
+                        </copy>
+                        <copy>
+                            <from>'SUCCESS'</from>
+                            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/ns2:RequestInfo/ns3:RETURN_MESSAGE</to>
+                        </copy>
+                    </assign>
+                </sequence>
+            </else>
+        </if>
+        <!-- 
+          Asynchronous callback to the requester. (Note: the callback location and correlation id is transparently handled using WS-addressing.)
+        -->
+        <invoke name="callbackClient" partnerLink="DeactivationOrderToOLOEBF" portType="ns1:DeactivationOrderToOLOEBFCallback" operation="processResponse" inputVariable="outputVariable"/>
+    </sequence>
+</process>
